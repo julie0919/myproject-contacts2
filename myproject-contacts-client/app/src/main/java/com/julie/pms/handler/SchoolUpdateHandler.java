@@ -1,33 +1,22 @@
 package com.julie.pms.handler;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import com.julie.driver.Statement;
 import com.julie.util.Prompt;
 
 public class SchoolUpdateHandler implements Command {
 
-  // 친구 연락처 수정 메소드
+  Statement stmt;
+
+  public SchoolUpdateHandler(Statement stmt) {
+    this.stmt = stmt;
+  }
+
   @Override
-  public void service(DataInputStream in, DataOutputStream out) throws Exception {
+  public void service() throws Exception {
     System.out.println("[연락처 수정]");
-    int no = Prompt.printInt("수정하고싶은 연락처의 번호를 입력하세요> ");
+    int no = Prompt.printInt("수정하고 싶은 연락처의 번호를 입력하세요> ");
 
-    // 서버에 지정한 번호의 데이터를 요청한다.
-    out.writeUTF("school/select");
-    out.writeInt(1);
-    out.writeUTF(Integer.toString(no));
-    out.flush();
-
-    // 서버의 응답을 받는다.
-    String status = in.readUTF();
-    in.readInt();
-
-    if (status.equals("error")) {
-      System.out.println(in.readUTF());
-      return;
-    }
-
-    String[] fields = in.readUTF().split(",");
+    String[] fields = stmt.executeQuery("school/select", Integer.toString(no)).next().split(",");
     String name = Prompt.printString(String.format("이름(%s)> ", fields[1]));
     String tel = Prompt.printString(String.format("연락처(%s)> ", fields[2]));
     String mail = Prompt.printString(String.format("이메일(%s)> ", fields[3]));
@@ -40,22 +29,8 @@ public class SchoolUpdateHandler implements Command {
       return;
     }
 
-
-    // 서버에 데이터 변경을 요청한다.
-    out.writeUTF("school/update");
-    out.writeInt(1);
-    out.writeUTF(String.format("%d,%s,%s,%s,%s,%s", 
+    stmt.executeUpdate("school/update", String.format("%d,%s,%s,%s,%s,%s", 
         no, name, tel, mail, school, address));
-    out.flush();
-
-    // 서버의 응답을 받는다.
-    status = in.readUTF();
-    in.readInt();
-
-    if (status.equals("error")) {
-      System.out.println(in.readUTF());
-      return;
-    }
 
     System.out.println("연락처 정보를 수정하였습니다.");
   }

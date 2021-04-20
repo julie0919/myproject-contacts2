@@ -1,15 +1,19 @@
 package com.julie.pms.handler;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import com.julie.driver.Statement;
 import com.julie.pms.domain.Family;
 import com.julie.util.Prompt;
 
 public class FamilyAddHandler implements Command {
 
-  //가족 등록 메소드
+  Statement stmt;
+
+  public FamilyAddHandler(Statement stmt) {
+    this.stmt = stmt;
+  }
+
   @Override
-  public void service(DataInputStream in, DataOutputStream out) throws Exception {
+  public void service() throws Exception {
     System.out.println("[가족 등록]");
     System.out.println("** 연락처 등록을 취소하시려면 빈 문자열을 입력해주세요 **");
     System.out.println();
@@ -46,21 +50,8 @@ public class FamilyAddHandler implements Command {
       return;
     }
 
-    // 서버에 데이터 입력을 요청한다.
-    out.writeUTF("family/insert");
-    out.writeInt(1);
-    out.writeUTF(String.format("%s,%s,%s,%s,%s", 
+    stmt.executeUpdate("family/insert", String.format("%s,%s,%s,%s,%s", 
         f.getName(), f.getTel(), f.getMail(), f.getAddress(), f.getBirth()));
-    out.flush();
-
-    // 서버의 응답을 읽는다.
-    String status = in.readUTF();
-    in.readInt();
-
-    if (status.equals("error")) {
-      System.out.println(in.readUTF());
-      return;
-    }
 
     System.out.println("연락처 등록을 완료했습니다.");
   }

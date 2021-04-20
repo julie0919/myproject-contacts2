@@ -7,6 +7,7 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import com.julie.driver.Statement;
 import com.julie.pms.handler.Command;
 import com.julie.pms.handler.CompanyAddHandler;
 import com.julie.pms.handler.CompanyDeleteHandler;
@@ -37,7 +38,14 @@ public class ClientApp {
   public static void main(String[] args) {
 
     ClientApp app = new ClientApp("localhost", 8888);
-    app.execute();
+
+    try {
+      app.execute();
+
+    } catch (Exception e) {
+      System.out.println("클라이언트 실행 중 오류 발생!");
+      e.printStackTrace();
+    }
   }
 
   public ClientApp(String serverAddress, int port) {
@@ -45,28 +53,31 @@ public class ClientApp {
     this.port = port;
   }
 
-  public void execute() {
+  public void execute() throws Exception {
+
+    // 서버와 통신하는 것을 대행해 줄 객체를 준비한다.
+    Statement stmt = new Statement(serverAddress, port);
 
     // 사용자 명령을 처리하는 객체를 맵에 보관한다.
     HashMap<String,Command> commandMap = new HashMap<>();
 
-    commandMap.put("연락처 추가(가족)", new FamilyAddHandler());
-    commandMap.put("연락처 목록(가족)", new FamilyListHandler());
-    commandMap.put("연락처 상세보기(가족)", new FamilyDetailHandler());
-    commandMap.put("연락처 수정(가족)", new FamilyUpdateHandler());
-    commandMap.put("연락처 삭제(가족)", new FamilyDeleteHandler());
+    commandMap.put("연락처 추가(가족)", new FamilyAddHandler(stmt));
+    commandMap.put("연락처 목록(가족)", new FamilyListHandler(stmt));
+    commandMap.put("연락처 상세보기(가족)", new FamilyDetailHandler(stmt));
+    commandMap.put("연락처 수정(가족)", new FamilyUpdateHandler(stmt));
+    commandMap.put("연락처 삭제(가족)", new FamilyDeleteHandler(stmt));
 
-    commandMap.put("연락처 추가(친구)", new SchoolAddHandler());
-    commandMap.put("연락처 목록(친구)", new SchoolListHandler());
-    commandMap.put("연락처 상세보기(친구)", new SchoolDetailHandler());
-    commandMap.put("연락처 수정(친구)", new SchoolUpdateHandler());
-    commandMap.put("연락처 삭제(친구)", new SchoolDeleteHandler());
+    commandMap.put("연락처 추가(친구)", new SchoolAddHandler(stmt));
+    commandMap.put("연락처 목록(친구)", new SchoolListHandler(stmt));
+    commandMap.put("연락처 상세보기(친구)", new SchoolDetailHandler(stmt));
+    commandMap.put("연락처 수정(친구)", new SchoolUpdateHandler(stmt));
+    commandMap.put("연락처 삭제(친구)", new SchoolDeleteHandler(stmt));
 
-    commandMap.put("연락처 추가(회사)", new CompanyAddHandler());
-    commandMap.put("연락처 목록(회사)", new CompanyListHandler());
-    commandMap.put("연락처 상세보기(회사)", new CompanyDetailHandler());
-    commandMap.put("연락처 수정(회사)", new CompanyUpdateHandler());
-    commandMap.put("연락처 삭제(회사)", new CompanyDeleteHandler());
+    commandMap.put("연락처 추가(회사)", new CompanyAddHandler(stmt));
+    commandMap.put("연락처 목록(회사)", new CompanyListHandler(stmt));
+    commandMap.put("연락처 상세보기(회사)", new CompanyDetailHandler(stmt));
+    commandMap.put("연락처 수정(회사)", new CompanyUpdateHandler(stmt));
+    commandMap.put("연락처 삭제(회사)", new CompanyDeleteHandler(stmt));
 
     try (Socket socket = new Socket(this.serverAddress, this.port);
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
@@ -110,7 +121,7 @@ public class ClientApp {
           } else if (commandHandler == null) {
             System.out.println("실행할 수 없는 명령입니다.");
           }  else {
-            commandHandler.service(in, out);
+            commandHandler.service();
           }
 
         } catch (Exception e) {
