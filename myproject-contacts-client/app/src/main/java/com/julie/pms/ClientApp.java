@@ -1,13 +1,9 @@
 package com.julie.pms;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import com.julie.driver.Statement;
 import com.julie.pms.handler.Command;
 import com.julie.pms.handler.CompanyAddHandler;
 import com.julie.pms.handler.CompanyDeleteHandler;
@@ -36,7 +32,6 @@ public class ClientApp {
   int port;
 
   public static void main(String[] args) {
-
     ClientApp app = new ClientApp("localhost", 8888);
 
     try {
@@ -54,35 +49,28 @@ public class ClientApp {
   }
 
   public void execute() throws Exception {
-
-    // 서버와 통신하는 것을 대행해 줄 객체를 준비한다.
-    Statement stmt = new Statement(serverAddress, port);
-
     // 사용자 명령을 처리하는 객체를 맵에 보관한다.
     HashMap<String,Command> commandMap = new HashMap<>();
 
-    commandMap.put("연락처 추가(가족)", new FamilyAddHandler(stmt));
-    commandMap.put("연락처 목록(가족)", new FamilyListHandler(stmt));
-    commandMap.put("연락처 상세보기(가족)", new FamilyDetailHandler(stmt));
-    commandMap.put("연락처 수정(가족)", new FamilyUpdateHandler(stmt));
-    commandMap.put("연락처 삭제(가족)", new FamilyDeleteHandler(stmt));
+    commandMap.put("연락처 추가(가족)", new FamilyAddHandler());
+    commandMap.put("연락처 목록(가족)", new FamilyListHandler());
+    commandMap.put("연락처 상세보기(가족)", new FamilyDetailHandler());
+    commandMap.put("연락처 수정(가족)", new FamilyUpdateHandler());
+    commandMap.put("연락처 삭제(가족)", new FamilyDeleteHandler());
 
-    commandMap.put("연락처 추가(친구)", new SchoolAddHandler(stmt));
-    commandMap.put("연락처 목록(친구)", new SchoolListHandler(stmt));
-    commandMap.put("연락처 상세보기(친구)", new SchoolDetailHandler(stmt));
-    commandMap.put("연락처 수정(친구)", new SchoolUpdateHandler(stmt));
-    commandMap.put("연락처 삭제(친구)", new SchoolDeleteHandler(stmt));
+    commandMap.put("연락처 추가(친구)", new SchoolAddHandler());
+    commandMap.put("연락처 목록(친구)", new SchoolListHandler());
+    commandMap.put("연락처 상세보기(친구)", new SchoolDetailHandler());
+    commandMap.put("연락처 수정(친구)", new SchoolUpdateHandler());
+    commandMap.put("연락처 삭제(친구)", new SchoolDeleteHandler());
 
-    commandMap.put("연락처 추가(회사)", new CompanyAddHandler(stmt));
-    commandMap.put("연락처 목록(회사)", new CompanyListHandler(stmt));
-    commandMap.put("연락처 상세보기(회사)", new CompanyDetailHandler(stmt));
-    commandMap.put("연락처 수정(회사)", new CompanyUpdateHandler(stmt));
-    commandMap.put("연락처 삭제(회사)", new CompanyDeleteHandler(stmt));
+    commandMap.put("연락처 추가(회사)", new CompanyAddHandler());
+    commandMap.put("연락처 목록(회사)", new CompanyListHandler());
+    commandMap.put("연락처 상세보기(회사)", new CompanyDetailHandler());
+    commandMap.put("연락처 수정(회사)", new CompanyUpdateHandler());
+    commandMap.put("연락처 삭제(회사)", new CompanyDeleteHandler());
 
-    try (Socket socket = new Socket(this.serverAddress, this.port);
-        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-        DataInputStream in = new DataInputStream(socket.getInputStream())) {
-
+    try {
       while (true) {
         String command = Prompt.printString("--------------------원하시는 메뉴를 선택해주세요--------------------\n"
             + ">>연락처 추가(가족/친구/회사)<<\n>>연락처 목록(가족/친구/회사)<<\n>>연락처 상세보기(가족/친구/회사)<<\n"
@@ -103,18 +91,7 @@ public class ClientApp {
           } else if(command.equals("검색기록조회(마지막부터)")) {
             printCommandHistory(commandStack.iterator());
 
-          }else if (command.equals("나가기")) {
-            // 서버에게 종료한다고 메세지를 보낸다.
-            out.writeUTF("나가기");
-            out.writeInt(0);
-            out.flush();
-
-            // 서버의 응답을 읽는다.
-            //  - 서버가 보낸 응답을 읽지 않으면 프로토콜 위반이다.
-            //  - 서버가 보낸 데이터를 사용하지 않더라도 프로토콜 규칙에 따라 읽어야한다.
-            in.readUTF();
-            in.readInt();
-
+          } else if (command.equals("나가기")) {
             System.out.println("안녕!");
             return;
 

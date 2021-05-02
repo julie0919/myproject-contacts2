@@ -1,16 +1,12 @@
 package com.julie.pms.handler;
 
-import com.julie.driver.Statement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import com.julie.pms.domain.Family;
 import com.julie.util.Prompt;
 
 public class FamilyAddHandler implements Command {
-
-  Statement stmt;
-
-  public FamilyAddHandler(Statement stmt) {
-    this.stmt = stmt;
-  }
 
   @Override
   public void service() throws Exception {
@@ -50,9 +46,19 @@ public class FamilyAddHandler implements Command {
       return;
     }
 
-    stmt.executeUpdate("family/insert", String.format("%s,%s,%s,%s,%s", 
-        f.getName(), f.getTel(), f.getMail(), f.getAddress(), f.getBirth()));
+    try (Connection con = DriverManager.getConnection(
+        "jdbc:mysql://localhost:3306/studydb?user=study&password=1111");
+        PreparedStatement stmt = con.prepareStatement(
+            "insert into pms_family(name,tel,mail,address,birth) values(?,?,?,?,?")) {
 
-    System.out.println("연락처 등록을 완료했습니다.");
+      stmt.setString(1, f.getName());
+      stmt.setString(2, f.getTel());
+      stmt.setString(3, f.getMail());
+      stmt.setString(4, f.getAddress());
+      stmt.setDate(5, f.getBirth());
+
+      stmt.executeUpdate();
+      System.out.println("연락처 등록을 완료했습니다.");
+    }
   }
 }

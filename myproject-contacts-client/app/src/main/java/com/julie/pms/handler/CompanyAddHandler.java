@@ -1,16 +1,12 @@
 package com.julie.pms.handler;
 
-import com.julie.driver.Statement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import com.julie.pms.domain.Company;
 import com.julie.util.Prompt;
 
 public class CompanyAddHandler implements Command {
-
-  Statement stmt;
-
-  public CompanyAddHandler(Statement stmt) {
-    this.stmt = stmt;
-  }
 
   @Override
   public void service() throws Exception {
@@ -50,9 +46,18 @@ public class CompanyAddHandler implements Command {
       return;
     }
 
-    stmt.executeUpdate("company/insert", String.format("%s,%s,%s,%s,%s",
-        c.getName(), c.getTel(), c.getMail(), c.getWork(), c.getAddress()));
+    try (Connection con = DriverManager.getConnection(
+        "jdbc:mysql://localhost:3306/studydb?user=study&password=1111");
+        PreparedStatement stmt = con.prepareStatement(
+            "insert into pms_company(name,tel,mail,work,address) values(?,?,?,?,?)")) {
 
-    System.out.println("연락처 등록을 완료했습니다.");
+      stmt.setString(1, c.getName());
+      stmt.setString(2, c.getTel());
+      stmt.setString(3, c.getMail());
+      stmt.setString(4, c.getWork());
+      stmt.setString(5, c.getAddress());
+
+      System.out.println("연락처 등록을 완료했습니다.");
+    }
   }
 }
